@@ -1,6 +1,6 @@
 ---
 title: "Tidyverse Vignette: Wrangling & Visualizing FiveThirtyEight 'drinks' data"
-author: "Your Name"
+author: "Sachi Kapoor"
 date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 output:
   html_document:
@@ -17,13 +17,17 @@ pkgs <- c("tidyverse","fivethirtyeight","janitor","scales","forcats")
 for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) install.packages(p)
 lapply(pkgs, library, character.only = TRUE)
 theme_set(theme_minimal(base_size = 12))
+```
 
+```{r}
 # ---- Load & inspect ----
 
 data("drinks", package = "fivethirtyeight")
 drinks <- janitor::clean_names(drinks)
 glimpse(drinks)
+```
 
+```{r}
 # ---- Pivot to long format ----
 
 drinks_long <- drinks |>
@@ -37,7 +41,9 @@ beverage = stringr::str_replace(beverage, "_servings$", "") |> stringr::str_to_t
 )
 
 dplyr::slice_head(drinks_long, n = 8)
+```
 
+```{r}
 # ---- Rank countries by average servings ----
 
 top15 <- drinks_long |>
@@ -47,7 +53,9 @@ dplyr::arrange(dplyr::desc(avg_servings)) |>
 dplyr::slice_head(n = 15)
 
 top15
+```
 
+```{r}
 # ---- Plot: stacked bars by beverage ----
 
 top15_comp <- drinks_long |>
@@ -63,7 +71,9 @@ ggplot2::labs(
 title = "Alcohol servings by beverage (Top 15 countries by average servings)",
 x = NULL, y = "Servings per person", fill = "Beverage"
 )
+```
 
+```{r}
 # ---- Quick correlation (optional) ----
 
 summary_tbl <- drinks |>
@@ -74,8 +84,11 @@ cor_avg_total = cor(avg_servings, total_litres_of_pure_alcohol, use = "complete.
 )
 
 summary_tbl
+```
 
+```{r}
 # ---- Session info (for reproducibility) ----
 
 sessionInfo()
 ```
+cat("**Data citation:** FiveThirtyEight data via the `fivethirtyeight` R package (see [https://cran.r-project.org/package=fivethirtyeight](https://cran.r-project.org/package=fivethirtyeight)).")
