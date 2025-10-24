@@ -121,9 +121,13 @@ Revision/Addition Description and Link:
 # Sachi K.
 
 * Initial Description and Link:
+- Demonstrates `tidyr::pivot_longer()`, `dplyr` summaries, and a `ggplot2` stacked composition chart using FiveThirtyEight’s `drinks` dataset.
+- `vignettes/sachi_drinks_tidyr_dplyr.Rmd`
 
 * Revision/Addition Description and Link:
-
+- Adds `forcats` examples (`fct_reorder()` for sorted bars and `fct_lump_n()` to group small categories).
+- `vignettes/sachi_drinks_tidyr_dplyr.Rmd`
+- 
 # Taha M.
 
 * Initial Description and Link:
