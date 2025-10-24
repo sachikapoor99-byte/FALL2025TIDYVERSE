@@ -1,0 +1,81 @@
+---
+title: "Tidyverse Vignette: Wrangling & Visualizing FiveThirtyEight 'drinks' data"
+author: "Your Name"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    number_sections: true
+---
+
+```{r}
+# ---- Setup ----
+
+pkgs <- c("tidyverse","fivethirtyeight","janitor","scales","forcats")
+for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) install.packages(p)
+lapply(pkgs, library, character.only = TRUE)
+theme_set(theme_minimal(base_size = 12))
+
+# ---- Load & inspect ----
+
+data("drinks", package = "fivethirtyeight")
+drinks <- janitor::clean_names(drinks)
+glimpse(drinks)
+
+# ---- Pivot to long format ----
+
+drinks_long <- drinks |>
+tidyr::pivot_longer(
+cols = dplyr::ends_with("_servings"),
+names_to = "beverage",
+values_to = "servings"
+) |>
+dplyr::mutate(
+beverage = stringr::str_replace(beverage, "_servings$", "") |> stringr::str_to_title()
+)
+
+dplyr::slice_head(drinks_long, n = 8)
+
+# ---- Rank countries by average servings ----
+
+top15 <- drinks_long |>
+dplyr::group_by(country) |>
+dplyr::summarise(avg_servings = mean(servings, na.rm = TRUE)) |>
+dplyr::arrange(dplyr::desc(avg_servings)) |>
+dplyr::slice_head(n = 15)
+
+top15
+
+# ---- Plot: stacked bars by beverage ----
+
+top15_comp <- drinks_long |>
+dplyr::semi_join(top15, by = "country") |>
+dplyr::mutate(country = forcats::fct_reorder(country, servings, .fun = mean, .desc = TRUE))
+
+ggplot2::ggplot(top15_comp, ggplot2::aes(x = country, y = servings, fill = beverage)) +
+ggplot2::geom_col() +
+ggplot2::coord_flip() +
+ggplot2::scale_y_continuous(labels = scales::label_number(accuracy = 1)) +
+ggplot2::scale_fill_brewer(palette = "Set2") +
+ggplot2::labs(
+title = "Alcohol servings by beverage (Top 15 countries by average servings)",
+x = NULL, y = "Servings per person", fill = "Beverage"
+)
+
+# ---- Quick correlation (optional) ----
+
+summary_tbl <- drinks |>
+dplyr::mutate(avg_servings = rowMeans(dplyr::across(dplyr::ends_with("_servings")), na.rm = TRUE)) |>
+dplyr::summarise(
+n = dplyr::n(),
+cor_avg_total = cor(avg_servings, total_litres_of_pure_alcohol, use = "complete.obs")
+)
+
+summary_tbl
+
+# ---- Session info (for reproducibility) ----
+
+sessionInfo()
+```
