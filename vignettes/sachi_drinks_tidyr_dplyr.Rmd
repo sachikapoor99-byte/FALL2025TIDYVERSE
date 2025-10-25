@@ -92,3 +92,58 @@ summary_tbl
 sessionInfo()
 ```
 cat("**Data citation:** FiveThirtyEight data via the `fivethirtyeight` R package (see [https://cran.r-project.org/package=fivethirtyeight](https://cran.r-project.org/package=fivethirtyeight)).")
+####  This part is updated by Mehreen Ali Gillani
+
+```{r}
+# ---- EXTENSION 1: Create beverage preference analysis  ----
+
+# Calculate which beverage is most dominant in each country
+beverage_preference <- drinks_long |>
+  dplyr::group_by(country) |>
+  dplyr::mutate(
+    total_servings = sum(servings, na.rm = TRUE),
+    pct_of_total = servings / total_servings * 100
+  ) |>
+  dplyr::slice_max(pct_of_total, n = 1, with_ties = FALSE) |>
+  dplyr::rename(dominant_beverage = beverage, dominant_pct = pct_of_total) |>
+  dplyr::select(country, dominant_beverage, dominant_pct, total_servings)
+
+# Show countries where one beverage dominates (>70% of servings)
+beverage_dominance <- beverage_preference |>
+  dplyr::filter(dominant_pct > 70) |>
+  dplyr::arrange(dplyr::desc(dominant_pct))
+
+cat("Countries where one beverage type dominates (>70% of servings):\n")
+print(beverage_dominance, n = 10)
+
+```
+
+```{r}
+# ---- EXTENSION 2: Enhanced visualization - faceted by beverage type----
+
+# Create a faceted plot to compare beverage distributions across top countries
+top10_by_beverage <- drinks_long |>
+  dplyr::group_by(beverage) |>
+  dplyr::slice_max(servings, n = 7) |>
+  dplyr::ungroup()
+
+ggplot2::ggplot(top10_by_beverage, 
+                ggplot2::aes(x = forcats::fct_reorder(country, servings), 
+                             y = servings)) +
+  ggplot2::geom_col(fill = "steelblue", alpha = 1.0) +
+  ggplot2::facet_wrap(~beverage, scales = "free_y", ncol = 1) +
+  ggplot2::coord_flip() +
+  ggplot2::scale_y_continuous(labels = scales::label_number()) +
+  ggplot2::labs(
+    title = "Top 7 Countries by Servings for Each Beverage Type",
+    subtitle = "Showing beer, spirit, and wine consumption patterns separately",
+    x = NULL,
+    y = "Servings per person"
+  ) +
+  ggplot2::theme(
+    strip.text = ggplot2::element_text(face = "bold", size = 8),
+    panel.spacing = ggplot2::unit(1, "lines")
+  )
+
+```
+
